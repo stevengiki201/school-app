@@ -12,7 +12,6 @@ import {
   getAttendanceInRange,
   alertMessage,
   type ExportFormat,
-  type DateMode,
 } from "@/services/exportAttendance";
 
 const ExportScreen = observer(() => {
@@ -23,8 +22,6 @@ const ExportScreen = observer(() => {
   const [busy, setBusy] = useState<ExportFormat | null>(null);
   // Which class to export (defaults to the currently open class).
   const [classId, setClassId] = useState<string | null>(selectedDarasa?.id ?? null);
-  // "taken" = only dates attendance was taken, "all" = every date in the range.
-  const [dateMode, setDateMode] = useState<DateMode>("taken");
 
   const exportDarasa = darasas.find((d: any) => d.id === classId) ?? null;
 
@@ -68,7 +65,7 @@ const ExportScreen = observer(() => {
     if (!validate()) return;
     setBusy(format);
     try {
-      await exportAttendance(format, start, end, { darasaId: classId, dateMode });
+      await exportAttendance(format, start, end, { darasaId: classId, dateMode: "all" });
     } finally {
       setBusy(null);
     }
@@ -213,50 +210,6 @@ const ExportScreen = observer(() => {
           startLabel="From"
           endLabel="To"
         />
-
-        {/* Date series option */}
-        <View style={[styles.modeCard, { backgroundColor: theme.card, borderColor }]}>
-          <Text style={[styles.modeTitle, { color: theme.text }]}>Dates to include</Text>
-          <View style={styles.modeRow}>
-            <TouchableOpacity
-              style={[
-                styles.modeOption,
-                {
-                  borderColor: dateMode === "taken" ? "#3B82F6" : borderColor,
-                  backgroundColor: dateMode === "taken" ? (isDark ? "#1e3a8a33" : "#eff6ff") : "transparent",
-                },
-              ]}
-              onPress={() => setDateMode("taken")}
-            >
-              <Text
-                style={[styles.modeOptionText, { color: dateMode === "taken" ? "#3B82F6" : theme.text }]}
-              >
-                Only dates taken
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.modeOption,
-                {
-                  borderColor: dateMode === "all" ? "#3B82F6" : borderColor,
-                  backgroundColor: dateMode === "all" ? (isDark ? "#1e3a8a33" : "#eff6ff") : "transparent",
-                },
-              ]}
-              onPress={() => setDateMode("all")}
-            >
-              <Text
-                style={[styles.modeOptionText, { color: dateMode === "all" ? "#3B82F6" : theme.text }]}
-              >
-                All dates in range
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={[styles.modeHint, { color: isDark ? "#9ca3af" : "#6b7280" }]}>
-            {dateMode === "taken"
-              ? "Columns show only the dates you recorded attendance."
-              : "Columns show every date in the range, even days without attendance."}
-          </Text>
-        </View>
 
         {/* Range summary */}
         <View
@@ -453,35 +406,6 @@ const styles = StyleSheet.create({
   classRowSub: {
     fontSize: 12,
     marginTop: 2,
-  },
-  modeCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-  },
-  modeTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
-  modeRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  modeOption: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  modeOptionText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  modeHint: {
-    fontSize: 12,
-    marginTop: 8,
   },
 });
 
