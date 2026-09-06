@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "ShuleBomba",
+    "owner": "gbrain",
+    "slug": "Shulebomba",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/appIcon.png",
+    "scheme": "shulebomba",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.ShuleBomba.com"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2f3437",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2,
+      "package": "app.ShuleBomba.com"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/android-icon-foreground.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "48ddb1ad-3df6-4fce-99e2-6b2444f02e69"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/48ddb1ad-3df6-4fce-99e2-6b2444f02e69"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
+  }
+}

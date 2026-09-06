@@ -1,0 +1,404 @@
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import * as Linking from "expo-linking";
+import { BookOpen, ChevronRight, CloudUpload, Info, Share2Icon, SlidersHorizontalIcon, Star, StarsIcon, Trash2Icon, User2Icon } from "lucide-react-native";
+import { getSnapshot } from "mobx-state-tree";
+import { createTeacherUpload } from "@/services/teacherUploadsApi";
+import { rootStore } from "@/components/models";
+import { Card, Divider } from "react-native-paper";
+import { useRouter} from "expo-router";
+import { useTheme } from "@/context/ThemeContext";
+import { observer } from "mobx-react-lite";
+
+function alertMessage(title: string, message: string) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+const Account=observer(() =>  {
+  const {resetStore, setAvatar,avatar} = rootStore;
+  const router=useRouter();
+  const { theme } = useTheme();
+  const [uploading, setUploading] = useState(false);
+
+  const onUploadData = async () => {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const snapshot = getSnapshot(rootStore) as Record<string, unknown>;
+      const rawAuth = snapshot.authUser as
+        | {
+            username?: string;
+            password?: string;
+            school_name?: string;
+            clientId?: string;
+          }
+        | null
+        | undefined;
+      const json_data = {
+        ...snapshot,
+        authUser: rawAuth
+          ? {
+              username: rawAuth.username,
+              school_name: rawAuth.school_name,
+              clientId: rawAuth.clientId,
+            }
+          : null,
+      };
+      const res = await createTeacherUpload(json_data);
+      if (res.ok) {
+        alertMessage("Upload complete", "Your data was sent to the server.");
+      } else {
+        const data = res.data as Record<string, unknown> | undefined;
+        const detail =
+          data && typeof data === "object" && "detail" in data
+            ? String(data.detail)
+            : [res.problem, res.status ? `HTTP ${res.status}` : null].filter(Boolean).join(" — ");
+        alertMessage("Upload failed", detail || "Could not reach the server.");
+      }
+    } catch (e) {
+      alertMessage(
+        "Upload failed",
+        e instanceof Error ? e.message : "Unknown error"
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const OnDeleteAccount = () => {
+     // Implement account deletion logic here
+    if (Platform.OS === "web") {
+          const confirmed = window.confirm("Are you sure you want to delete your account? ,This action cannot be undone, and all your data will be lost.");
+    
+          if (confirmed) {
+            resetStore()
+            router.replace("/");
+          } 
+        } else {
+          Alert.alert(
+            "Confirm Delete Account",
+            "Are you sure you want to delete your account? This action cannot be undone, and all your data will be lost.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                  resetStore();
+                  router.replace("/");
+                },
+              },
+            ]
+          );
+        }
+   
+
+   
+  };
+  const onAbout=()=>{
+    router.push("/about-app")
+  }
+
+  const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=app.ShuleBomba.com";
+
+  const onShareApp = async () => {
+    const message = `Check out ShuleBomba — a simple Class Management System for attendance, tests and reports. ${PLAY_STORE_URL}`;
+    try {
+      if (Platform.OS === "web") {
+        if (navigator.share) {
+          await navigator.share({ title: "ShuleBomba", text: message });
+        } else {
+          await navigator.clipboard.writeText(message);
+          alertMessage("Link copied", "The share link was copied to your clipboard.");
+        }
+        return;
+      }
+      await Share.share({ message });
+    } catch (e) {
+      // User cancelled the share sheet — ignore.
+    }
+  };
+
+  const onRateApp = () => {
+    // TODO: swap in the iOS App Store id once the app is published on iOS.
+    if (Platform.OS === "android") {
+      Linking.openURL(`market://details?id=app.ShuleBomba.com`).catch(() =>
+        Linking.openURL(PLAY_STORE_URL)
+      );
+    } else {
+      Linking.openURL(PLAY_STORE_URL);
+    }
+  };
+
+   
+
+  const { authUser } = rootStore;
+  const initials = authUser?.username ? authUser.username.slice(0, 2).toUpperCase() : "U";
+  return (
+    <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        >
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <Card style={{ marginBottom: 20, padding: 16, borderRadius: 16, elevation: 8,backgroundColor:theme.card }}>      
+      <TouchableOpacity style={[styles.item,]} >
+      <View>
+        {avatar ? (
+        <Image 
+        source={{ uri: avatar }} 
+        style={styles.avatar} /> ):(
+          <View style={styles.avatarLetter}>
+          <Text style={styles.avatarText}>{initials}</Text>
+        </View>
+        )}
+      </View>
+     
+      <View style={styles.user}>
+      <Text style={[styles.title, { color: theme.text}]}>{authUser?.username ?? "Username"}</Text>
+      <Text style={[styles.subtitle, { color: theme.text }]}>{authUser?.school_name ?? "School Name"}</Text>
+      </View>
+  
+      </TouchableOpacity>
+
+      </Card>
+
+      <Card style={[styles.section, { backgroundColor: theme.card }]}>
+      <TouchableOpacity style={styles.item} onPress={()=>{router.push("/account")}}>
+      <View style={[styles.iconWrapper]}>
+      <User2Icon size={20} color="#0284C7" />   
+      </View>
+
+      <View style={[styles.textWrapper,]}>
+      <Text style={[styles.title,{color:theme.text}]}>My Profile</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Edit profile</Text>
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+
+      </TouchableOpacity>
+      <Divider style={styles.divider} />
+      <TouchableOpacity style={styles.item} onPress={()=>router.push("/manage-madarasa")}>
+      <View style={[styles.iconWrapper]}>
+      <BookOpen size={20} color="#2E7D32" />
+      </View>
+
+      <View style={styles.textWrapper}>
+      <Text style={[styles.title,{color:theme.text}]}>Manage Classes</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Add / Edit / Delete classes</Text>
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+      <Divider style={styles.divider} />  
+
+      <TouchableOpacity style={styles.item} onPress={() => router.push("/app-preference")}>
+      <View style={[styles.iconWrapper]}>
+      <SlidersHorizontalIcon size={20} color="#7C3AED" />
+      </View>
+
+      <View style={styles.textWrapper}>
+      <Text style={[styles.title,{color:theme.text}]}>App preference</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Themes</Text>
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+      <Divider style={styles.divider} />
+
+      <TouchableOpacity style={styles.item} onPress={onAbout}>
+      <View style={[styles.iconWrapper]}>
+      <Info size={20} color="#0891B2" />
+      </View>
+
+      <View style={styles.textWrapper}>
+      <Text style={[styles.title,{color:theme.text}]}>About</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Version, Terms of Service</Text>  
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+      <Divider style={styles.divider} />
+
+      <TouchableOpacity
+        style={styles.item}
+        onPress={onUploadData}
+        disabled={uploading}
+      >
+      <View style={[styles.iconWrapper]}>
+      <CloudUpload size={20} color="#4F46E5" />
+      </View>
+
+      <View style={styles.textWrapper}>
+      <Text style={[styles.title,{color:theme.text}]}>Upload data</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Sync local data to your server</Text>
+      </View>
+
+      {uploading ? (
+        <ActivityIndicator color="#4F46E5" />
+      ) : (
+        <ChevronRight size={20} color="#9CA3AF" />
+      )}
+      </TouchableOpacity>
+      <Divider style={styles.divider} />
+
+      <TouchableOpacity style={styles.item} onPress={OnDeleteAccount}>
+      <View style={[styles.iconWrapper]}>
+      <Trash2Icon size={20} color="#EF4444" />
+      </View>
+
+      <View style={styles.textWrapper}>
+      <Text style={[styles.title,{color:theme.text}]}>Delete Account</Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Delete your account permanently</Text>  
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+      
+      </Card>
+
+      <Card style={[styles.section, { backgroundColor: theme.card }]}>
+
+      <TouchableOpacity style={styles.item} onPress={onShareApp}>
+      <View style={[styles.iconWrapper]}>
+      <Share2Icon size={20} color="#0284C7" />   
+      </View>
+
+      <View style={[styles.textWrapper,]}>
+      <Text style={[styles.title,{color:theme.text}]}>Share </Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>Share ShuleBomba with others</Text>
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+
+      </TouchableOpacity>
+      <Divider  style={styles.divider}/>
+
+      <TouchableOpacity style={styles.item} onPress={onRateApp}>
+      <View style={[styles.iconWrapper]}>
+      <Star size={20} color="#0284C7" />   
+      </View>
+
+      <View style={[styles.textWrapper,]}>
+      <Text style={[styles.title,{color:theme.text}]}>Rate </Text>
+      <Text style={[styles.subtitle ,{color:theme.text}]}>How do you like this app.</Text>
+      </View>
+
+      <ChevronRight size={20} color="#9CA3AF" />
+
+      </TouchableOpacity>
+      
+
+     
+        
+      </Card>
+    </View>
+    </ScrollView>
+
+  );
+});
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+
+  section: {
+    borderRadius: 10,
+    paddingVertical: 6,
+    marginBottom: 16,
+
+    // Android
+    elevation: 2,
+
+    // iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#1b34",
+    marginLeft: 56,
+  },
+
+  iconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+
+  textWrapper: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+  },
+
+  subtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginTop: 2,
+  },
+
+  chevron: {
+    marginLeft: 8,
+  },
+  user:{
+    marginLeft: 30,
+    flex: 1,
+    
+  },
+  avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    resizeMode: "cover",
+    backgroundColor: "#c4d4f5ff",
+  },
+  avatarText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  avatarLetter: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#4F8EF7", // any color you like
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+export default Account;
