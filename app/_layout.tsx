@@ -17,14 +17,7 @@ import { applySnapshot } from "mobx-state-tree";
 import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { Provider as PaperProvider } from "react-native-paper";
-import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
-import { syncServerDataToStore } from "@/services/syncFromServer";
-
-function netInfoToOnline(state: NetInfoState): boolean {
-  if (state.isConnected === false) return false;
-  if (state.isInternetReachable === false) return false;
-  return true;
-}
+import "@/services/dayjsSetup"; // registers dayjs customParseFormat for DD-MM-YYYY parsing
 
 // Keep the splash screen visible while we fetch resources
 
@@ -68,40 +61,6 @@ useEffect(() => {
 
   hideSplash();
 }, [isReady]);
-
-  useEffect(() => {
-    if (!isReady) return;
-
-    rootStore.ensureAuthClientId();
-
-    let cancelled = false;
-
-    const maybeSync = () => {
-      if (cancelled) return;
-      if (!rootStore.isOnline) return;
-      if (!rootStore.authUser) return;
-      syncServerDataToStore().catch((err) =>
-        console.warn("[sync] syncServerDataToStore", err)
-      );
-    };
-
-    const unsub = NetInfo.addEventListener((state) => {
-      const online = netInfoToOnline(state);
-      rootStore.setOnline(online);
-      if (online) maybeSync();
-    });
-
-    NetInfo.fetch().then((state) => {
-      const online = netInfoToOnline(state);
-      rootStore.setOnline(online);
-      if (online) maybeSync();
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, [isReady]);
 
   if (!isReady) {
     return null;

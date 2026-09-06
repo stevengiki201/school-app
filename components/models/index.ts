@@ -3,21 +3,10 @@ import { applySnapshot } from "mobx-state-tree"
 import { getRoot, onSnapshot, types } from "mobx-state-tree"; // alternatively: import { t } from "mobx-state-tree"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/** Stable UUID for sync/API; persisted with the auth user snapshot. */
-function generateClientId(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 const AuthUserModel = types.model('AuthUserModel', {
   username: types.identifier,
   password: types.optional(types.string, ""),
   school_name: types.string,
-  /** Device/user id for server sync (TeacherUploads lookup). */
-  clientId: types.optional(types.string, ""),
 
 });
 
@@ -176,9 +165,7 @@ const RootStoreModel = types
     selectedDate: types.maybeNull(types.string),
     tests:types.array(TestModel),
     avatar: types.maybeNull(types.string),
-    /** Updated by NetInfo — used for sync gating (also persisted). */
-    isOnline: types.optional(types.boolean, true),
-    
+
     theme: types.optional(types.enumeration('theme', ['light', 'dark', 'system']), 'system'),
   })
   .actions((self) => ({
@@ -192,26 +179,12 @@ const RootStoreModel = types
       // safeReference stores a Darasa id string (identifier)
       self.selectedDarasa = value as unknown as typeof self.selectedDarasa;
     },
-    setOnline(online: boolean) {
-      self.isOnline = online;
-    },
-    ensureAuthClientId() {
-      if (!self.authUser) return;
-      if (!self.authUser.clientId || self.authUser.clientId.trim() === "") {
-        self.authUser.clientId = generateClientId();
-      }
-    },
     setAuthUser(user: any) {
       const prev = self.authUser;
-      const clientId =
-        (user && user.clientId) ||
-        (prev && prev.clientId) ||
-        generateClientId();
       self.authUser = {
         username: user.username,
         password: user.password ?? prev?.password ?? "",
         school_name: user.school_name,
-        clientId,
       };
     },
     setSelectedStudent(student: any) {
@@ -314,7 +287,6 @@ export const rootStore = RootStoreModel.create({
   selectedDarasa: null,
   tests:[],
   theme: 'light',
-  isOnline: true,
 });
 
 onSnapshot(rootStore, (snapshot) => {

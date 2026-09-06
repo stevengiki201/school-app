@@ -11,11 +11,8 @@ import React from "react";
 
 const ManageMadarasa = observer(() => {
   const { theme, isDark } = useTheme();
-  const { darasas, setSelectedDarasa, selectedDarasa,authUser } = rootStore
+  const { darasas, setSelectedDarasa, selectedDarasa } = rootStore
   const router = useRouter();
-  if(!authUser){
-    router.replace("/")
-  };
   const onClassView = (darasa:any) => {
     setSelectedDarasa(darasa.id)
     router.push("/(classes)/add-student")

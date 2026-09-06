@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Platform,
@@ -12,9 +11,7 @@ import {
   View,
 } from "react-native";
 import * as Linking from "expo-linking";
-import { BookOpen, ChevronRight, CloudUpload, Info, Share2Icon, SlidersHorizontalIcon, Star, StarsIcon, Trash2Icon, User2Icon } from "lucide-react-native";
-import { getSnapshot } from "mobx-state-tree";
-import { createTeacherUpload } from "@/services/teacherUploadsApi";
+import { BookOpen, ChevronRight, Info, Share2Icon, SlidersHorizontalIcon, Star, Trash2Icon, User2Icon } from "lucide-react-native";
 import { rootStore } from "@/components/models";
 import { Card, Divider } from "react-native-paper";
 import { useRouter} from "expo-router";
@@ -30,55 +27,9 @@ function alertMessage(title: string, message: string) {
 }
 
 const Account=observer(() =>  {
-  const {resetStore, setAvatar,avatar} = rootStore;
-  const router=useRouter();
+  const { resetStore, setAvatar, avatar } = rootStore;
+  const router = useRouter();
   const { theme } = useTheme();
-  const [uploading, setUploading] = useState(false);
-
-  const onUploadData = async () => {
-    if (uploading) return;
-    setUploading(true);
-    try {
-      const snapshot = getSnapshot(rootStore) as Record<string, unknown>;
-      const rawAuth = snapshot.authUser as
-        | {
-            username?: string;
-            password?: string;
-            school_name?: string;
-            clientId?: string;
-          }
-        | null
-        | undefined;
-      const json_data = {
-        ...snapshot,
-        authUser: rawAuth
-          ? {
-              username: rawAuth.username,
-              school_name: rawAuth.school_name,
-              clientId: rawAuth.clientId,
-            }
-          : null,
-      };
-      const res = await createTeacherUpload(json_data);
-      if (res.ok) {
-        alertMessage("Upload complete", "Your data was sent to the server.");
-      } else {
-        const data = res.data as Record<string, unknown> | undefined;
-        const detail =
-          data && typeof data === "object" && "detail" in data
-            ? String(data.detail)
-            : [res.problem, res.status ? `HTTP ${res.status}` : null].filter(Boolean).join(" — ");
-        alertMessage("Upload failed", detail || "Could not reach the server.");
-      }
-    } catch (e) {
-      alertMessage(
-        "Upload failed",
-        e instanceof Error ? e.message : "Unknown error"
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const OnDeleteAccount = () => {
      // Implement account deletion logic here
@@ -231,28 +182,6 @@ const Account=observer(() =>  {
       </View>
 
       <ChevronRight size={20} color="#9CA3AF" />
-      </TouchableOpacity>
-      <Divider style={styles.divider} />
-
-      <TouchableOpacity
-        style={styles.item}
-        onPress={onUploadData}
-        disabled={uploading}
-      >
-      <View style={[styles.iconWrapper]}>
-      <CloudUpload size={20} color="#4F46E5" />
-      </View>
-
-      <View style={styles.textWrapper}>
-      <Text style={[styles.title,{color:theme.text}]}>Upload data</Text>
-      <Text style={[styles.subtitle ,{color:theme.text}]}>Sync local data to your server</Text>
-      </View>
-
-      {uploading ? (
-        <ActivityIndicator color="#4F46E5" />
-      ) : (
-        <ChevronRight size={20} color="#9CA3AF" />
-      )}
       </TouchableOpacity>
       <Divider style={styles.divider} />
 

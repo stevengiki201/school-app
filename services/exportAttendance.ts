@@ -4,6 +4,10 @@ import * as FileSystem from "expo-file-system";
 import dayjs from "dayjs";
 import { Alert, Platform } from "react-native";
 import { rootStore } from "@/components/models";
+import { ensureDayjsPlugins } from "@/services/dayjsSetup";
+
+// Parsing "DD-MM-YYYY" strings needs the customParseFormat plugin — see dayjsSetup.ts.
+ensureDayjsPlugins();
 
 export type ExportFormat = "pdf" | "word" | "excel";
 /** "taken" = only dates where attendance was recorded; "all" = every date in range. */
@@ -32,7 +36,11 @@ export function getAttendanceInRange(start: string, end: string, darasaId?: stri
     if (!att.isSaved) return false;
     if (studentIds && !studentIds.has(att.student?.id)) return false;
     const parsed = dayjs(att.date, "DD-MM-YYYY");
-    return parsed.isAfter(s) && parsed.isBefore(e);
+    // Inclusive on both ends: records ON the start/end date must be included
+    // (the UI defaults the range to end today, so today's records land on the
+    // end boundary and would otherwise be silently dropped).
+    if (!parsed.isValid()) return false;
+    return !parsed.isBefore(s, "day") && !parsed.isAfter(e, "day");
   });
 }
 
@@ -206,7 +214,11 @@ export function buildReportHtml(start: string, end: string, options: ExportOptio
   )}</div>
   <table>
     ${header}
-    ${body || `<tr><td colspan="999">No saved attendance records in this period.</td></tr>`}
+    ${
+      rows.length === 0
+        ? `<tr><td colspan="999">No saved attendance records in this period.</td></tr>`
+        : body
+    }
   </table>
   ${summaryBlock}
   <div class="foot">✓ = Present, X = Absent, S = Permission/Sick, — = no attendance recorded.</div>
