@@ -8,7 +8,7 @@ jest.mock("expo-sharing", () => ({
   isAvailableAsync: jest.fn(async () => true),
   shareAsync: jest.fn(async () => undefined),
 }));
-jest.mock("expo-file-system", () => ({
+jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/docs/",
   EncodingType: { UTF8: "utf8" },
   getInfoAsync: jest.fn(async () => ({ exists: false })),

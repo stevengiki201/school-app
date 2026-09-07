@@ -1,6 +1,8 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+// SDK 54 moved the classic API to the /legacy subpath — this file uses
+// documentDirectory/writeAsStringAsync, which only exist there.
+import * as FileSystem from "expo-file-system/legacy";
 import dayjs from "dayjs";
 import { Alert, Platform } from "react-native";
 import { rootStore } from "@/components/models";

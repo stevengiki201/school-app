@@ -19,7 +19,7 @@ const { shareAsync, isAvailableAsync } = jest.requireMock("expo-sharing") as {
   shareAsync: jest.Mock;
   isAvailableAsync: jest.Mock;
 };
-const FS = jest.requireMock("expo-file-system") as {
+const FS = jest.requireMock("expo-file-system/legacy") as {
   writeAsStringAsync: jest.Mock;
 };
 
