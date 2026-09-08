@@ -34,7 +34,7 @@ const pickImage = async () => {
       mediaTypes: ['images', 'videos'],
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.4,
+      quality: 0.1,
     });
     console.log(result);
     if (!result.canceled && authUser) {

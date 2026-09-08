@@ -1,24 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
 import { useTheme } from "@/context/ThemeContext";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { nanoid } from "nanoid/non-secure";
 import { Button, TextInput, Card, Divider } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const AddTestScreen = observer(() => {
-  const [name, setName] = useState("");
-  const [marksMap, setMarksMap] = useState<{ [id: string]: string }>({});
+  const { editTestId } = useLocalSearchParams<{ editTestId?: string }>();
   const { selectedDarasa } = rootStore;
+  // When the screen was opened from the ellipsis menu on a test, prefill the
+  // form with that test's name and marks so the user can edit them.
+  const editingTest = editTestId
+    ? selectedDarasa?.tests.find((t) => t.id === editTestId)
+    : undefined;
+
+  const [name, setName] = useState(editingTest?.testname ?? "");
+  const [marksMap, setMarksMap] = useState<{ [id: string]: string }>(() => {
+    const initial: { [id: string]: string } = {};
+    editingTest?.scores.forEach((s) => {
+      initial[s.studentId] = String(s.marks);
+    });
+    return initial;
+  });
   const { theme } = useTheme();
   const router = useRouter();
+
+  // Re-sync the form when a different test is being edited (drawer screens
+  // stay mounted, so params can change without a fresh mount).
+  useEffect(() => {
+    if (!editingTest) return;
+    setName(editingTest.testname);
+    const next: { [id: string]: string } = {};
+    editingTest.scores.forEach((s) => {
+      next[s.studentId] = String(s.marks);
+    });
+    setMarksMap(next);
+  }, [editTestId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!selectedDarasa) {
     return <Text style={{ color: theme.text }}>No class selected</Text>;
   }
-  const addTest = () => {
+  const saveTest = () => {
     if (!name.trim()) return;
 
     const marksData: { [studentId: string]: number } = {};
@@ -32,7 +57,11 @@ const AddTestScreen = observer(() => {
       }
     });
 
-    selectedDarasa.addTest(name.trim(), marksData);
+    if (editingTest) {
+      selectedDarasa.updateTest(editingTest.id, name.trim(), marksData);
+    } else {
+      selectedDarasa.addTest(name.trim(), marksData);
+    }
 
     setName("");
     setMarksMap({});
@@ -49,7 +78,7 @@ const AddTestScreen = observer(() => {
       <Card style={[styles.card,{backgroundColor:theme.card}]}>
         <Card.Content>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Test Name
+            {editingTest ? "Edit Test Name" : "Test Name"}
           </Text>
 
           <TextInput
@@ -105,9 +134,9 @@ const AddTestScreen = observer(() => {
       <Button
         mode="contained"
         style={styles.button}
-        onPress={addTest}
+        onPress={saveTest}
       >
-        Save Test
+        {editingTest ? "Update Test" : "Save Test"}
       </Button>
     </ScrollView>
     </SafeAreaView>

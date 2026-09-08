@@ -81,6 +81,15 @@ const TestModel = types
         marks
       })
     }
+  },
+
+  removeScore(studentId: string) {
+    const index = self.scores.findIndex(
+      s => s.studentId === studentId
+    )
+    if (index > -1) {
+      self.scores.splice(index, 1)
+    }
   }
 }))
 
@@ -131,6 +140,27 @@ const DarasaModel = types
       });
       
       self.tests.push(newTest);
+    },
+    // Edit an existing test: rename it and apply the per-student marks.
+    // A student missing from marksMap (blank input) gets their score removed.
+    updateTest(testId: string, testname: string, marksMap: { [studentId: string]: number }) {
+      const test = self.tests.find((t) => t.id === testId);
+      if (!test) return;
+      test.setTestName(testname);
+      self.students.forEach((student) => {
+        const marks = marksMap[student.id];
+        if (marks !== undefined && marks !== null) {
+          test.addScore(student.id, marks);
+        } else {
+          test.removeScore(student.id);
+        }
+      });
+    },
+    removeTest(testId: string) {
+      const index = self.tests.findIndex((t) => t.id === testId);
+      if (index > -1) {
+        self.tests.splice(index, 1);
+      }
     },
     setName(value: string) {
       self.name = value;

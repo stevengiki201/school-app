@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,7 +11,7 @@ import {
 } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
-import { Button } from "react-native-paper";
+import { Button, Menu } from "react-native-paper";
 import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
@@ -25,6 +27,13 @@ const TestScoreScreen = observer(() => {
   const headerScrollRef = useRef<ScrollView>(null);
   const studentScrollRefs = useRef<(ScrollView | null)[]>([]);
   const syncing = useRef(false);
+
+  // Anchor (screen coords) for the test ellipsis menu: { testId, x, y }.
+  const [menuState, setMenuState] = useState<{
+    testId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!selectedDate) {
@@ -165,7 +174,18 @@ const TestScoreScreen = observer(() => {
                 >
                   {test.testname}
                 </Text>
-                <MoreVertical size={18}/>
+                <Pressable
+                  collapsable={false}
+                  hitSlop={8}
+                  onPress={(e) => {
+                    e.currentTarget.measureInWindow((x, y, w, h) =>
+                      setMenuState({ testId: test.id, x: x + w, y: y + h })
+                    );
+                  }}
+                  style={styles.moreButton}
+                >
+                  <MoreVertical size={18} color={theme.text} />
+                </Pressable>
               </View>
             ))}
           </View>
@@ -241,6 +261,52 @@ const TestScoreScreen = observer(() => {
           </View>
         ))}
       </ScrollView>
+
+      {/* Test actions menu (Edit / Delete) anchored to the ellipsis icon */}
+      <Menu
+        visible={!!menuState}
+        onDismiss={() => setMenuState(null)}
+        anchor={
+          menuState ? { x: menuState.x, y: menuState.y } : { x: 0, y: 0 }
+        }
+      >
+        <Menu.Item
+          leadingIcon="pencil"
+          title="Edit"
+          onPress={() => {
+            const testId = menuState?.testId;
+            setMenuState(null);
+            if (testId) {
+              router.push({
+                pathname: "/(classes)/add-test",
+                params: { editTestId: testId },
+              });
+            }
+          }}
+        />
+        <Menu.Item
+          leadingIcon="trash-can-outline"
+          title="Delete"
+          titleStyle={{ color: "#DC2626" }}
+          onPress={() => {
+            const testId = menuState?.testId;
+            setMenuState(null);
+            if (!testId) return;
+            Alert.alert(
+              "Delete test",
+              "Are you sure you want to delete this test? This action cannot be undone.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: () => selectedDarasa.removeTest(testId),
+                },
+              ]
+            );
+          }}
+        />
+      </Menu>
     </View>
   );
 });
@@ -288,6 +354,10 @@ const styles = StyleSheet.create({
   },
   markHeaderText: {
     textAlign: "center",
+  },
+  moreButton: {
+    marginLeft: 4,
+    padding: 2,
   },
   bodyScroll: {
     flex: 1,
