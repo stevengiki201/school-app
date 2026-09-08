@@ -15,6 +15,7 @@ import { Button, Menu } from "react-native-paper";
 import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
+import { requestTestEdit } from "@/context/testEditRequest";
 import { ChartNoAxesCombined, Edit3, FlipVerticalIcon, GripVertical, MoreVertical } from "lucide-react-native";
 
 const NAME_COL_WIDTH = 140;
@@ -277,10 +278,8 @@ const TestScoreScreen = observer(() => {
             const testId = menuState?.testId;
             setMenuState(null);
             if (testId) {
-              router.push({
-                pathname: "/(classes)/add-test",
-                params: { editTestId: testId },
-              });
+              requestTestEdit(testId);
+              router.push("/(classes)/add-test");
             }
           }}
         />

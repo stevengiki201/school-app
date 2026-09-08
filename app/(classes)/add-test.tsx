@@ -1,48 +1,110 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
 import { useTheme } from "@/context/ThemeContext";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { nanoid } from "nanoid/non-secure";
 import { Button, TextInput, Card, Divider } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  getCurrentTestEditRequest,
+  subscribeTestEditRequest,
+  clearTestEditRequest,
+} from "@/context/testEditRequest";
 
+/**
+ * Add Test / Edit Test.
+ *
+ * One class holds many tests (DarasaModel.tests), so this screen has two
+ * modes:
+ *  - default: create a NEW test (never blocks a second test — "Save Test"
+ *    appends to the class's tests array);
+ *  - edit: preloaded from the ellipsis menu on test-score via a one-shot
+ *    edit-request bus (route params go stale because the drawer keeps this
+ *    screen mounted).
+ *
+ * Marks typed before an Edit request arrives are preserved as a draft, so
+ * switching modes never destroys in-progress input.
+ */
 const AddTestScreen = observer(() => {
-  const { editTestId } = useLocalSearchParams<{ editTestId?: string }>();
   const { selectedDarasa } = rootStore;
-  // When the screen was opened from the ellipsis menu on a test, prefill the
-  // form with that test's name and marks so the user can edit them.
-  const editingTest = editTestId
-    ? selectedDarasa?.tests.find((t) => t.id === editTestId)
-    : undefined;
-
-  const [name, setName] = useState(editingTest?.testname ?? "");
-  const [marksMap, setMarksMap] = useState<{ [id: string]: string }>(() => {
-    const initial: { [id: string]: string } = {};
-    editingTest?.scores.forEach((s) => {
-      initial[s.studentId] = String(s.marks);
-    });
-    return initial;
-  });
   const { theme } = useTheme();
   const router = useRouter();
 
-  // Re-sync the form when a different test is being edited (drawer screens
-  // stay mounted, so params can change without a fresh mount).
-  useEffect(() => {
-    if (!editingTest) return;
-    setName(editingTest.testname);
+  const [name, setName] = useState("");
+  const [marksMap, setMarksMap] = useState<{ [id: string]: string }>({});
+  const [editingTestId, setEditingTestId] = useState<string | null>(null);
+  // Marks captured while in edit mode, restored if the user cancels the edit.
+  const draftRef = useRef<{ name: string; marks: { [id: string]: string } } | null>(
+    null
+  );
+
+  const loadTestIntoForm = (testId: string) => {
+    if (!selectedDarasa) return;
+    const test = selectedDarasa.tests.find((t) => t.id === testId);
+    if (!test) return;
+
+    // Keep whatever the user was typing so it can be restored on Cancel.
+    draftRef.current = { name, marks: marksMap };
+
+    setName(test.testname);
     const next: { [id: string]: string } = {};
-    editingTest.scores.forEach((s) => {
+    test.scores.forEach((s) => {
       next[s.studentId] = String(s.marks);
     });
     setMarksMap(next);
-  }, [editTestId]); // eslint-disable-line react-hooks/exhaustive-deps
+    setEditingTestId(test.id);
+  };
+
+  // Consume one-shot edit requests coming from the test-score ellipsis menu.
+  // The request carries a seq so each tap is applied exactly once.
+  useEffect(() => {
+    let lastSeq = 0;
+    const pending = getCurrentTestEditRequest();
+    if (pending && pending.seq > lastSeq) {
+      lastSeq = pending.seq;
+      loadTestIntoForm(pending.testId);
+      clearTestEditRequest();
+    }
+    return subscribeTestEditRequest((req) => {
+      if (req && req.seq > lastSeq) {
+        lastSeq = req.seq;
+        loadTestIntoForm(req.testId);
+        clearTestEditRequest();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDarasa]);
 
   if (!selectedDarasa) {
     return <Text style={{ color: theme.text }}>No class selected</Text>;
   }
+
+  const editingTest = editingTestId
+    ? selectedDarasa.tests.find((t) => t.id === editingTestId)
+    : undefined;
+
+  const resetForm = () => {
+    setName("");
+    setMarksMap({});
+    setEditingTestId(null);
+    draftRef.current = null;
+  };
+
+  const cancelEdit = () => {
+    const draft = draftRef.current;
+    if (draft) {
+      // Restore the in-progress new-test draft instead of discarding it.
+      setName(draft.name);
+      setMarksMap(draft.marks);
+      draftRef.current = null;
+    } else {
+      resetForm();
+    }
+    setEditingTestId(null);
+  };
+
   const saveTest = () => {
     if (!name.trim()) return;
 
@@ -60,11 +122,11 @@ const AddTestScreen = observer(() => {
     if (editingTest) {
       selectedDarasa.updateTest(editingTest.id, name.trim(), marksData);
     } else {
+      // Appends a new test — a class can hold any number of tests.
       selectedDarasa.addTest(name.trim(), marksData);
     }
 
-    setName("");
-    setMarksMap({});
+    resetForm();
     router.push("/(classes)/test-score");
   };
 
@@ -83,7 +145,7 @@ const AddTestScreen = observer(() => {
 
           <TextInput
             mode="outlined"
-            label="Test Name"
+            label={editingTest ? `Editing: ${editingTest.testname}` : "Test Name"}
             value={name}
             
             onChangeText={setName}
@@ -138,6 +200,16 @@ const AddTestScreen = observer(() => {
       >
         {editingTest ? "Update Test" : "Save Test"}
       </Button>
+
+      {editingTest && (
+        <Button
+          mode="outlined"
+          style={styles.button}
+          onPress={cancelEdit}
+        >
+          Cancel Editing
+        </Button>
+      )}
     </ScrollView>
     </SafeAreaView>
   );
