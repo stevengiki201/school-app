@@ -101,7 +101,7 @@ const AttendanceScreen = observer(() => {
         <DataTable.Title><Text style={{ color: theme.text }}>Full name</Text></DataTable.Title>
         <DataTable.Title numeric><Text style={{ color: theme.text }}>Present</Text></DataTable.Title>
         <DataTable.Title numeric><Text style={{ color: theme.text }}>Absent</Text></DataTable.Title>
-        <DataTable.Title numeric><Text style={{ color: theme.text }}>Permission</Text></DataTable.Title>
+        <DataTable.Title numeric><Text style={{ color: theme.text }}>Sick</Text></DataTable.Title>
       </DataTable.Header>
       {selectedDarasa.students.map((student) => (
        <DataTable.Row key={`${student.id}`}>

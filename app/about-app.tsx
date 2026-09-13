@@ -47,7 +47,7 @@ export default function AboutApp() {
     {
       icon: Zap,
       title: "100% Offline",
-      description: "Works completely offline, need inmternent connection only to upload data and sync them with device",
+      description: "Works completely offline, no internet connection required",
       color: "#8B5CF6",
     },
   ];
@@ -104,12 +104,12 @@ export default function AboutApp() {
         {/* Hero Section */}
         <Card style={[styles.heroCard, { backgroundColor: "#3B82F6" }]}>
           <View style={styles.heroContent}>
-            <BookOpen size={48} color="#fff" />
+           
             <Text style={styles.heroTitle}>ShuleBomba</Text>
             <Text style={styles.heroSubtitle}>
               Modern Class Management System for Teachers
             </Text>
-            <Text style={styles.versionText}>Version 1.0.0</Text>
+            <Text style={styles.versionText}>Version 1.0.1</Text>
           </View>
         </Card>
 
@@ -217,7 +217,7 @@ export default function AboutApp() {
         {/* Footer */}
         <View style={[styles.footer, { backgroundColor: theme.card }]}>
           <Text style={[styles.footerText, { color: theme.text }]}>
-            Made with ShuleBomba Team for Teachers
+            Made with Steve for Teachers
           </Text>
           <Text style={[styles.footerSubtext, { color: theme.text }]}>
             © 2026 ShuleBomba. All rights reserved.
