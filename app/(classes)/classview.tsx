@@ -58,9 +58,10 @@ const ClassHomeScreen = observer(() => {
   }
 
   return (
+    <KeyboardAvoidingView>
     
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background, padding:15 }}>
-    <KeyboardAvoidingView>
+    
     <ScrollView
     contentContainerStyle={{ flexGrow: 1 }}
     showsVerticalScrollIndicator={false}
@@ -152,8 +153,8 @@ const ClassHomeScreen = observer(() => {
           </View>
         </View>
       </Modal>
-      </KeyboardAvoidingView>
     </SafeAreaView> 
+    </KeyboardAvoidingView>
     
   )
 });
