@@ -58,7 +58,7 @@ const ClassHomeScreen = observer(() => {
   }
 
   return (
-    <KeyboardAvoidingView>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background, padding:15 }}>
     
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background, padding:15 }}>
     
