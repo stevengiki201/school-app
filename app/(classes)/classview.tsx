@@ -1,33 +1,42 @@
-import { View, Text, TouchableOpacity, StyleSheet, TextInput ,ScrollView , useColorScheme, Image, KeyboardAvoidingView } from "react-native"
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView , useColorScheme, Image, KeyboardAvoidingView } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { observer } from "mobx-react-lite";
 import { useTheme } from "@/context/ThemeContext";
 import { rootStore } from "@/components/models";
-import {Modal,Button, DataTable} from "react-native-paper";
+import {Button, DataTable, Menu} from "react-native-paper";
 import React,{ useState } from "react";
 import { BarChart4Icon, ChevronLeft, Edit3, SaveAll, Trash2, UserPlus2, Users } from "lucide-react-native";
 
 const ClassHomeScreen = observer(() => {
   const router = useRouter();
   const { theme, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
-  const { selectedDarasa,selectedStudent } = rootStore
-  const [visible, setVisible] = useState(false);
-  
-  const onSelectStudent =  (student: any) => {
-    rootStore.setSelectedStudent(student.id);
-    setVisible(true);
+  const { selectedDarasa } = rootStore
+  const [menuStudentId, setMenuStudentId] = useState<string | null>(null);
+
+  const confirmDelete = (student: any) => {
+    Alert.alert(
+      "Delete student",
+      `Remove ${student.full_name} from this class? Their attendance records will be deleted too.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            rootStore.setSelectedStudent(null);
+            rootStore.selectedDarasa?.removeStudent(student.id);
+          },
+        },
+      ]
+    );
   };
 
-  const onDeleteStudent=(student: any)=>{
-    if(!selectedStudent) return;
-    rootStore.setSelectedStudent(null);
-    rootStore.selectedDarasa?.removeStudent(student.id);  
-    
-    setVisible(false);
-
+  const onEditStudent = (student: any) => {
+    rootStore.setSelectedStudent(student.id);
+    // Pass the tapped student's id in the URL so the edit form loads exactly this student
+    router.push(`/add-student?edit=1&studentId=${student.id}`);
   };
 
   if (!selectedDarasa) {
@@ -45,7 +54,13 @@ const ClassHomeScreen = observer(() => {
         <Text style={[styles.emptyTitle, { color: theme.text }]}>No students yet</Text>
         <Text style={[styles.emptySubtitle, { color: theme.text }]}>You haven't added any students to {selectedDarasa.name}. Add students to start tracking attendance and performance.</Text>
         <View style={styles.emptyActions}>
-          <Button mode="outlined" onPress={() => router.push("/add-student")}>
+          <Button
+            mode="outlined"
+            onPress={() => {
+              rootStore.setSelectedStudent(null);
+              router.push("/add-student");
+            }}
+          >
             Add Student
           </Button>
           <Button mode="outlined" onPress={() => router.replace("/")}>
@@ -75,7 +90,10 @@ const ClassHomeScreen = observer(() => {
       <View style={styles.actionsContainer}>
         <TouchableOpacity 
           style={[styles.actionCard, { backgroundColor: isDark ? '#1e293b' : '#f8fafc', borderColor: isDark ? '#334155' : '#e2e8f0' }]}
-          onPress={() => router.push("/add-student")}
+          onPress={() => {
+            rootStore.setSelectedStudent(null);
+            router.push("/add-student");
+          }}
         >
           <Ionicons name="person-add-outline" size={28} color='#3B82F6' />
           <Text style={[styles.actionCardText, { color: theme.text }]}>Add Student</Text>
@@ -117,42 +135,54 @@ const ClassHomeScreen = observer(() => {
       </DataTable.Header>
 
       {selectedDarasa.students.map(student => (
-        <DataTable.Row key={`${student.id}`}>
-          <DataTable.Cell><Text style={{ color: theme.text }}>{student.id}</Text></DataTable.Cell>
-          <DataTable.Cell onPress={() => onSelectStudent(student) }><Text style={{ color: theme.text }}>{student.full_name}</Text></DataTable.Cell>
-        </DataTable.Row>
+        <View key={`${student.id}`}>
+          <Menu
+            visible={menuStudentId === student.id}
+            onDismiss={() => setMenuStudentId(null)}
+            contentStyle={{ backgroundColor: theme.card }}
+            anchor={
+              <DataTable.Row onPress={() => setMenuStudentId(student.id)}>
+                <DataTable.Cell><Text style={{ color: theme.text }}>{student.reg_no || student.id}</Text></DataTable.Cell>
+                <DataTable.Cell>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+                    <Text style={{ color: theme.text }}>{student.full_name}</Text>
+                    {student.sex ? (
+                      <Ionicons
+                        name={student.sex === "male" ? "man" : "woman"}
+                        size={14}
+                        color={student.sex === "male" ? "#2563EB" : "#16A34A"}
+                      />
+                    ) : null}
+                  </View>
+                </DataTable.Cell>
+              </DataTable.Row>
+            }
+          >
+            <Menu.Item
+              leadingIcon="pencil-outline"
+              title="Edit student"
+              titleStyle={{ color: theme.text }}
+              onPress={() => {
+                setMenuStudentId(null);
+                onEditStudent(student);
+              }}
+            />
+            <Menu.Item
+              leadingIcon="trash-outline"
+              title="Delete student"
+              titleStyle={{ color: theme.text }}
+              onPress={() => {
+                setMenuStudentId(null);
+                confirmDelete(student);
+              }}
+            />
+          </Menu>
+        </View>
       ))}
 
       
     </View>
     </ScrollView>
-    <Modal
-        visible={visible}
-      
-        onDismiss={() => setVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <View style={[styles.bottomSheet, { paddingBottom: 20 + insets.bottom }] }>
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>name</Text>
-            <TextInput
-              style={styles.textInput}
-              value={selectedStudent?.full_name || ""}
-              onChangeText={(value)=>{
-                selectedStudent?.setFullName(value);
-              }}
-              
-            />  
-            <View style={styles.modalButton}> 
-            <Button mode="contained" onPress={() => setVisible(false)}>
-              Save
-            </Button>
-            <Button mode="contained" buttonColor="red" onPress={() => onDeleteStudent(selectedStudent) }>
-              Delete
-            </Button>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView> 
     </KeyboardAvoidingView>
     
@@ -231,12 +261,6 @@ const styles = StyleSheet.create({
     padding: 6,
   },
 
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-  },
   overlay: {
     flex: 1,
     justifyContent: "flex-start",
@@ -248,17 +272,7 @@ const styles = StyleSheet.create({
   justifyContent: 'space-between',
   gap: 12,
 },
-  bottomSheet: {
-    backgroundColor: "#fff",
-    padding: 50,
-    borderRadius: 20,
-    minHeight: 300, // short screen height
-  },
-  modalButton: {
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+
   classCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',

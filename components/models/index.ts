@@ -15,6 +15,11 @@ const StudentModel = types
   .model('StudentModel', {
     id: types.identifier,
     full_name: types.string,
+    // User-facing registration number (e.g. "001"); defaults to the
+    // internally generated id when the teacher doesn't provide one.
+    reg_no: types.optional(types.string, ""),
+    // "male" | "female" | ""
+    sex: types.optional(types.string, ""),
   }).views((self) => ({
     get status() {
         const root = getRoot(self) as any;
@@ -31,6 +36,12 @@ const StudentModel = types
   .actions((self) => ({
     setFullName(value: string) {
       self.full_name = value;
+    },
+    setSex(value: string) {
+      self.sex = value;
+    },
+    setRegNo(value: string) {
+      self.reg_no = value.trim();
     },
     getAttendanceStatus(){
       const root = getRoot(self) as any;
@@ -102,12 +113,27 @@ const DarasaModel = types
     tests: types.array(TestModel),
   })
   .actions((self) => ({
-    addStudent(full_name: string) {
+    addStudent(full_name: string, sex: string = "", regNo: string = "") {
+      // Internal id: a timestamp that stays numeric. Bumped until unique; the
+      // check spans every class so a large Excel import (many rows created in
+      // the same millisecond) or two concurrent imports can never reuse an id,
+      // and attendance records keyed by student id stay unambiguous.
+      const root = getRoot(self) as any;
+      let id = `${Date.now()}`;
+      const idTaken = (candidate: string) =>
+        self.students.some((s) => s.id === candidate) ||
+        (root?.darasas ?? []).some((d: any) => d.students.some((s: any) => s.id === candidate));
+      while (idTaken(id)) {
+        id = `${Number(id) + 1}`;
+      }
       const student = StudentModel.create({
         full_name,
-        id: `${Date.now()}`,
+        id,
+        sex,
+        reg_no: regNo.trim() || id,
       });
       self.students.push(student);
+      return student;
     },
       
     
@@ -164,6 +190,29 @@ const DarasaModel = types
     },
     setName(value: string) {
       self.name = value;
+    },
+  }))
+  // Second actions block so bulk imports can call the addStudent action defined
+  // above (MST resolves sibling actions on self only in a later block).
+  .actions((self) => ({
+    addStudentsBulk(rows: { full_name: string; sex?: string; reg_no?: string }[]) {
+      let added = 0;
+      let skipped = 0;
+      rows.forEach((row) => {
+        const fullName = (row.full_name ?? "").trim();
+        if (!fullName) {
+          skipped++;
+          return;
+        }
+        const regNo = (row.reg_no ?? "").trim();
+        if (regNo && self.students.some((s) => s.reg_no === regNo)) {
+          skipped++;
+          return;
+        }
+        self.addStudent(fullName, (row.sex ?? "").trim(), regNo);
+        added++;
+      });
+      return { added, skipped };
     },
   }));
 
@@ -250,11 +299,13 @@ removeDarasa(darasa: string) {
       darasa.setName(name);
     }
   },
-  updateStudent(studentId: string, fullName: string) {
+  updateStudent(studentId: string, fullName: string, sex?: string, regNo?: string) {
     for (const darasa of self.darasas) {
       const student = darasa.students.find((s) => s.id === studentId);
       if (student) {
         student.setFullName(fullName);
+        if (sex !== undefined) student.setSex(sex);
+        if (regNo !== undefined) student.setRegNo(regNo);
         return;
       }
     }
