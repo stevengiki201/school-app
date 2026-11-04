@@ -107,8 +107,8 @@ const AddStudentScreen = observer(() => {
 
     selectedDarasa.addStudent(fullName, sex, finalRegNo);
     setName("");
+    setSex("");
     setRegNo("");
-    // Keep the chosen sex: teachers often add same-sex batches in one sitting.
   };
 
   /** Send an .xlsx template the teacher can fill: Full Name / Sex / Registration No. */
