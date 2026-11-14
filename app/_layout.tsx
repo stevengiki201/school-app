@@ -18,6 +18,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { Provider as PaperProvider } from "react-native-paper";
 import "@/services/dayjsSetup"; // registers dayjs customParseFormat for DD-MM-YYYY parsing
+import { migrateSnapshot } from "@/services/migrateStore";
 
 // Keep the splash screen visible while we fetch resources
 
@@ -39,7 +40,10 @@ export default function RootLayout() {
     const storedData = await AsyncStorage.getItem("rootStore");
     if (storedData) {
       const rootStoreData = JSON.parse(storedData);
-    applySnapshot(rootStore, rootStoreData);
+      // Normalize snapshots saved by older versions (no class names, no
+      // subjects on classes/tests) so every existing class stays accessible.
+      const migrated = migrateSnapshot(rootStoreData);
+      if (migrated) applySnapshot(rootStore, migrated);
     }
   } catch (error) {
     console.error("Failed to load initial data:", error);

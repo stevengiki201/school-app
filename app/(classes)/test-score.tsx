@@ -20,6 +20,7 @@ import { ChartNoAxesCombined, Edit3, FlipVerticalIcon, GripVertical, MoreVertica
 
 const NAME_COL_WIDTH = 140;
 const MARK_COL_WIDTH = 80;
+const ALL_SUBJECTS = "__all_subjects__";
 
 const TestScoreScreen = observer(() => {
   const { theme, isDark } = useTheme();
@@ -36,6 +37,9 @@ const TestScoreScreen = observer(() => {
     y: number;
   } | null>(null);
 
+  // Which subject's marks are shown. Defaults to every subject.
+  const [subjectFilter, setSubjectFilter] = useState<string>(ALL_SUBJECTS);
+
   useEffect(() => {
     if (!selectedDate) {
       setSelectedDate(dayjs().format("DD-MM-YYYY"));
@@ -43,6 +47,12 @@ const TestScoreScreen = observer(() => {
   }, [selectedDate, setSelectedDate]);
 
   const { selectedDarasa } = rootStore;
+
+  // Start each class on "All subjects" (the filter may name a subject from
+  // the previously opened class).
+  useEffect(() => {
+    setSubjectFilter(ALL_SUBJECTS);
+  }, [selectedDarasa?.id]);
 
   const borderColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)";
   const headerBg = theme.card;
@@ -85,6 +95,22 @@ const TestScoreScreen = observer(() => {
   if (!selectedDarasa) {
     return <Text style={{ color: theme.text }}>No class selected</Text>;
   }
+
+  // Subjects defined on the class plus any subject already used by a test.
+  const subjectNames: string[] = Array.from(
+    new Set([
+      ...selectedDarasa.subjects.map((s) => s.name),
+      ...selectedDarasa.tests.map((t) => t.subject).filter(Boolean),
+    ])
+  );
+  const activeFilter =
+    subjectFilter === ALL_SUBJECTS || !subjectNames.includes(subjectFilter)
+      ? ALL_SUBJECTS
+      : subjectFilter;
+  const visibleTests =
+    activeFilter === ALL_SUBJECTS
+      ? selectedDarasa.tests
+      : selectedDarasa.tests.filter((test) => test.subject === activeFilter);
   if (selectedDarasa.tests.length === 0) {
     return (
       <View
@@ -127,6 +153,49 @@ const TestScoreScreen = observer(() => {
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
+      {/* Pick which subject's marks are displayed */}
+      <View style={[styles.subjectFilterBar, { borderBottomColor: borderColor }]}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.subjectFilterContent}
+        >
+          {[ALL_SUBJECTS, ...subjectNames].map((name) => {
+            const selected = activeFilter === name;
+            return (
+              <Pressable
+                key={name}
+                onPress={() => setSubjectFilter(name)}
+                style={[
+                  styles.subjectChip,
+                  {
+                    borderColor: selected ? "#2563EB" : borderColor,
+                    backgroundColor: selected ? "#2563EB" : headerBg,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.subjectChipText,
+                    { color: selected ? "#fff" : theme.text },
+                  ]}
+                >
+                  {name === ALL_SUBJECTS ? "All subjects" : name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {visibleTests.length === 0 ? (
+        <View style={styles.emptyFilter}>
+          <Text style={{ color: theme.text }}>
+            No test scores recorded for {activeFilter} yet.
+          </Text>
+        </View>
+      ) : null}
+
       {/* Fixed table header: name column + horizontally scrollable test titles */}
       <View
         style={[
@@ -158,7 +227,7 @@ const TestScoreScreen = observer(() => {
           onScroll={onHeaderHorizontalScroll}
         >
           <View style={styles.marksRowInner}>
-            {selectedDarasa.tests.map((test) => (
+            {visibleTests.map((test) => (
               <View
                 key={test.id}
                 style={[
@@ -169,12 +238,20 @@ const TestScoreScreen = observer(() => {
                   },
                 ]}
               >
-                <Text
-                  style={[styles.headerText, styles.markHeaderText, { color: theme.text }]}
-                  numberOfLines={2}
-                >
-                  {test.testname}
-                </Text>
+                <View style={styles.markHeaderLabel}>
+                  <Text
+                    style={[styles.headerText, styles.markHeaderText, { color: theme.text }]}
+                    numberOfLines={2}
+                  >
+                    {test.testname}
+                  </Text>
+                  <Text
+                    style={[styles.subjectText, { color: theme.text }]}
+                    numberOfLines={1}
+                  >
+                    {test.subject}
+                  </Text>
+                </View>
                 <Pressable
                   collapsable={false}
                   hitSlop={8}
@@ -236,7 +313,7 @@ const TestScoreScreen = observer(() => {
               onScroll={(e) => onRowHorizontalScroll(index, e)}
             >
               <View style={styles.marksRowInner}>
-                {selectedDarasa.tests.map((test) => {
+                {visibleTests.map((test) => {
                   const score = test.scores?.find(
                     (s) => s.studentId === student.id
                   );
@@ -353,6 +430,36 @@ const styles = StyleSheet.create({
   },
   markHeaderText: {
     textAlign: "center",
+  },
+  markHeaderLabel: {
+    flex: 1,
+    alignItems: "center",
+  },
+  subjectText: {
+    fontSize: 10,
+    opacity: 0.7,
+    marginTop: 2,
+  },
+  subjectFilterBar: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  subjectFilterContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  subjectChip: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  subjectChipText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  emptyFilter: {
+    padding: 16,
   },
   moreButton: {
     marginLeft: 4,

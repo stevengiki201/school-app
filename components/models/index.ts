@@ -55,7 +55,18 @@ const StudentModel = types
     },
 
   }));
-  const TestScore = types.model("TestScore", {
+  const SubjectModel = types
+  .model("SubjectModel", {
+    id: types.identifier,
+    name: types.string,
+  })
+  .actions((self) => ({
+    setName(value: string) {
+      self.name = value.trim();
+    },
+  }));
+
+const TestScore = types.model("TestScore", {
   id: types.identifier,
   studentId: types.string,
   marks: types.number
@@ -69,11 +80,17 @@ const TestModel = types
 .model("TestModel", {
   id: types.identifier,
   testname: types.string,
+  // Name of the subject this test's marks belong to.
+  subject: types.optional(types.string, ""),
   scores: types.array(TestScore)
 })
 .actions(self => ({
   setTestName(value: string) {
     self.testname = value
+  },
+
+  setSubject(value: string) {
+    self.subject = value.trim()
   },
 
   addScore(studentId: string, marks: number) {
@@ -110,6 +127,8 @@ const DarasaModel = types
     name: types.string,
     created_by: types.reference(AuthUserModel),
     students: types.array(StudentModel),
+    // Subjects taught in this class; every test score belongs to one of them.
+    subjects: types.optional(types.array(SubjectModel), []),
     tests: types.array(TestModel),
   })
   .actions((self) => ({
@@ -149,13 +168,72 @@ const DarasaModel = types
         self.students.splice(index, 1);
       } 
     },
-    addTest(testName: string, marksMap: { [studentId: string]: number }) {
+    addSubject(name: string) {
+      const trimmed = name.trim();
+      if (!trimmed) return undefined;
+      const existing = self.subjects.find(
+        (s) => s.name.toLowerCase() === trimmed.toLowerCase()
+      );
+      if (existing) return existing;
+
+      let id = `subject-${Date.now()}`;
+      while (self.subjects.some((s) => s.id === id)) {
+        id = `${id}-${Math.floor(Math.random() * 1_000_000)}`;
+      }
+      const subject = SubjectModel.create({ id, name: trimmed });
+      self.subjects.push(subject);
+      return subject;
+    },
+    // Rename a subject and carry the name over to its tests so their marks
+    // stay attached. Returns false when the name is empty or already taken.
+    renameSubject(subjectId: string, name: string) {
+      const trimmed = name.trim();
+      const subject = self.subjects.find((s) => s.id === subjectId);
+      if (!trimmed || !subject) return false;
+      if (
+        self.subjects.some(
+          (s) => s.id !== subjectId && s.name.toLowerCase() === trimmed.toLowerCase()
+        )
+      ) {
+        return false;
+      }
+      const oldName = subject.name;
+      subject.setName(trimmed);
+      self.tests.forEach((test) => {
+        if (test.subject === oldName) test.setSubject(trimmed);
+      });
+      return true;
+    },
+    // Removing a subject also removes the tests recorded under it, so no
+    // test score is left orphaned without a subject.
+    removeSubject(subjectId: string) {
+      const subject = self.subjects.find((s) => s.id === subjectId);
+      if (!subject) return;
+      const name = subject.name.toLowerCase();
+      for (let i = self.tests.length - 1; i >= 0; i--) {
+        if (self.tests[i].subject.trim().toLowerCase() === name) {
+          self.tests.splice(i, 1);
+        }
+      }
+      const index = self.subjects.findIndex((s) => s.id === subjectId);
+      if (index > -1) self.subjects.splice(index, 1);
+    },
+    addTest(testName: string, subject: string, marksMap: { [studentId: string]: number }) {
       const testId = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
       const newTest = TestModel.create({
         id: testId,
         testname: testName,
+        subject,
         scores: []
       });
+      // A test always belongs to a subject; make sure it is listed on the class.
+      const subjectName = subject.trim();
+      if (subjectName && !self.subjects.some((s) => s.name.toLowerCase() === subjectName.toLowerCase())) {
+        self.subjects.push({
+          id: `subject-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+          name: subjectName,
+        });
+      }
       
       // Add scores only for students that have a mark entered
       self.students.forEach(student => {
@@ -169,10 +247,18 @@ const DarasaModel = types
     },
     // Edit an existing test: rename it and apply the per-student marks.
     // A student missing from marksMap (blank input) gets their score removed.
-    updateTest(testId: string, testname: string, marksMap: { [studentId: string]: number }) {
+    updateTest(testId: string, testname: string, subject: string, marksMap: { [studentId: string]: number }) {
       const test = self.tests.find((t) => t.id === testId);
       if (!test) return;
       test.setTestName(testname);
+      test.setSubject(subject);
+      const subjectName = subject.trim();
+      if (subjectName && !self.subjects.some((s) => s.name.toLowerCase() === subjectName.toLowerCase())) {
+        self.subjects.push({
+          id: `subject-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+          name: subjectName,
+        });
+      }
       self.students.forEach((student) => {
         const marks = marksMap[student.id];
         if (marks !== undefined && marks !== null) {
@@ -274,7 +360,7 @@ const RootStoreModel = types
     },
     addDarasa(id: any,name:any) {
       const creator = self.authUser?.username ?? "steve";
-      self.darasas.push({ id, name, created_by: creator, students: [], tests: [] });
+      self.darasas.push({ id, name, created_by: creator, students: [], subjects: [], tests: [] });
       self.selectedDarasa = id;
     },
    addTest(id: string, testname: string) {
