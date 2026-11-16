@@ -2,6 +2,7 @@ import React from "react";
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   Share,
@@ -101,6 +102,10 @@ const Account=observer(() =>  {
   const { authUser } = rootStore;
   const initials = authUser?.username ? authUser.username.slice(0, 2).toUpperCase() : "U";
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
@@ -237,6 +242,7 @@ const Account=observer(() =>  {
       </Card>
     </View>
     </ScrollView>
+    </KeyboardAvoidingView>
 
   );
 });

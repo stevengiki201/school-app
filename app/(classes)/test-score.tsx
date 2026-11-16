@@ -3,6 +3,8 @@ import {
   Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -156,6 +158,10 @@ const TestScoreScreen = observer(() => {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       {/* Pick which subject's marks are displayed */}
       <View style={[styles.subjectFilterBar, { borderBottomColor: borderColor }]}>
@@ -388,6 +394,7 @@ const TestScoreScreen = observer(() => {
         />
       </Menu>
     </View>
+    </KeyboardAvoidingView>
   );
 });
 

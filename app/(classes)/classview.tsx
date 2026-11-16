@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView , useColorScheme, Image, KeyboardAvoidingView } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView , useColorScheme, Image, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -77,7 +77,10 @@ const ClassHomeScreen = observer(() => {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background, padding:15 }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.background, padding: 15 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background, padding:15 }}>
     

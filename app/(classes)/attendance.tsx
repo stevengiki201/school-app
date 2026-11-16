@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {ScrollView , View, Text, StyleSheet, Platform ,Alert, TouchableOpacity} from "react-native";
+import {ScrollView , View, Text, StyleSheet, Platform ,Alert, TouchableOpacity, KeyboardAvoidingView} from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
 import { Button, DataTable, RadioButton } from "react-native-paper";
@@ -80,6 +80,10 @@ const AttendanceScreen = observer(() => {
     };
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
@@ -144,6 +148,7 @@ const AttendanceScreen = observer(() => {
         </Button>
     </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }); 
 

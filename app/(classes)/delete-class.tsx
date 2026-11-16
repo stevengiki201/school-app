@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Alert, View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { Platform } from "react-native";
 import { rootStore } from "@/components/models";
 import { useRouter } from "expo-router";
@@ -45,6 +45,10 @@ export default function DeleteNotification() {
   };
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <View style={[styles.container, { backgroundColor: theme.background }]}> 
       
 
@@ -61,6 +65,7 @@ export default function DeleteNotification() {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 }
 

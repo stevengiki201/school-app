@@ -5,6 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
@@ -86,6 +88,10 @@ export default function AboutApp() {
   ];
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
@@ -225,6 +231,7 @@ export default function AboutApp() {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

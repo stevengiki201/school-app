@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { useTheme } from "@/context/ThemeContext";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
@@ -46,6 +46,10 @@ const SavedRollcallScreen = observer(() => {
   const isDarkTheme = isDark;
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
@@ -185,6 +189,7 @@ const SavedRollcallScreen = observer(() => {
         })}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 });
 
