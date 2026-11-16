@@ -1,26 +1,24 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-} from "react-native";
-import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
-import { Card, Divider } from "react-native-paper";
+import { useRouter } from "expo-router";
 import {
-  CheckCircle2,
-  Shield,
-  Users,
-  Zap,
+  BarChart3,
   Check,
   ChevronLeft,
-  BookOpen,
-  BarChart3,
   Clock,
+  Shield,
+  Users,
+  Zap
 } from "lucide-react-native";
+import React from "react";
+import {
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Card } from "react-native-paper";
 
 export default function AboutApp() {
   const router = useRouter();
@@ -114,7 +112,7 @@ export default function AboutApp() {
             <Text style={styles.heroSubtitle}>
               Modern Class Management System for Teachers
             </Text>
-            <Text style={styles.versionText}>Version 1.0.1</Text>
+            <Text style={styles.versionText}>Version 1.0.3</Text>
           </View>
         </Card>
 
