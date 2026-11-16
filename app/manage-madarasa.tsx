@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Platform, Alert, KeyboardAvoidingView } from "react-native"
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Platform, Alert } from "react-native"
 import { useTheme } from "@/context/ThemeContext";
 import { Button, Card, Divider, DataTable, Modal, TextInput} from "react-native-paper"
 import { Edit, PlusIcon, Trash2, ChevronLeft } from "lucide-react-native"
@@ -6,6 +6,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { observer } from "mobx-react-lite"
 import { rootStore } from "@/components/models"
+import { KeyboardAwareScrollView } from "@/components/ui/keyboard-aware-scroll-view";
 import React, { useState } from "react";
 
 
@@ -118,14 +119,9 @@ const ManageMadarasa = observer(() => {
 
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-    <ScrollView 
+    <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         >
     <View style={[{ flex: 1 , backgroundColor: theme.background }]}>
       <View style={styles.header}>
@@ -237,8 +233,7 @@ const ManageMadarasa = observer(() => {
         </View>
       </Modal>
     </View>
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   )
 });
 const styles = StyleSheet.create({

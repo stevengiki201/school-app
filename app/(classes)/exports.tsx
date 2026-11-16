@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { observer } from "mobx-react-lite";
 import dayjs from "dayjs";
 import { DatePickerModal } from "react-native-paper-dates";
@@ -106,7 +106,7 @@ const ExportScreen = observer(() => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
     >
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}

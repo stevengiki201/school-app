@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, ScrollView, Pressable, Alert, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from "react-native"
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet, TextInput } from "react-native"
 import { observer } from "mobx-react-lite"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { rootStore } from "@/components/models"
 import { useTheme } from "@/context/ThemeContext"
+import { KeyboardAwareScrollView } from "@/components/ui/keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "react-native-paper";
 import {
@@ -189,11 +190,7 @@ const AddStudentScreen = observer(() => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
         <View style={[styles.formCard, { backgroundColor: theme.card }]}>
           <Text style={[styles.cardTitle, { color: theme.text }]}>{isEdit ? "Edit student" : "Add one student"}</Text>
@@ -298,8 +295,7 @@ const AddStudentScreen = observer(() => {
           </View>
         </View>
         )}
-      </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 })

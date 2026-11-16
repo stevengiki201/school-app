@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Animated, Easing, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native"
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Animated, Easing, SafeAreaView, KeyboardAvoidingView } from "react-native"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from "@/context/ThemeContext";
 import { useEffect, useRef, useState } from 'react';
@@ -66,7 +66,7 @@ const HomeScreen = observer(() => {
     <SafeAreaProvider style={{ flex: 1, backgroundColor: theme.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
       >
       {/* Fixed Header Section */}
       <View style={[styles.headerSection, { backgroundColor: theme.card, borderBottomColor: isDark ? '#333' : '#e5e7eb' }]}>

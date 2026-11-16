@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
 import { useTheme } from "@/context/ThemeContext";
+import { KeyboardAwareScrollView } from "@/components/ui/keyboard-aware-scroll-view";
 import { useRouter } from "expo-router";
 import { nanoid } from "nanoid/non-secure";
 import { Button, TextInput, Card, Divider, Modal } from "react-native-paper";
@@ -209,14 +210,9 @@ const AddTestScreen = observer(() => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-    <ScrollView
+    <KeyboardAwareScrollView
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
     >
       {/* Subject Section — asked first: marks must always belong to a subject */}
       <Card style={[styles.card,{backgroundColor:theme.card}]}>
@@ -355,8 +351,7 @@ const AddTestScreen = observer(() => {
           Cancel Editing
         </Button>
       )}
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
 
     <Modal
       visible={subjectModalVisible}

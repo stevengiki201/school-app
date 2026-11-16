@@ -104,7 +104,7 @@ const Account=observer(() =>  {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
     >
     <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}

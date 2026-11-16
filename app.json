@@ -4,7 +4,7 @@
     "owner": "gbrain",
     "slug": "Shulebomba",
     "homepage": "https://stevengiki201.github.io/school-app",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/appIcon.png",
     "scheme": "shulebomba",
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "versionCode": 6,
+      "versionCode": 7,
       "package": "app.ShuleBomba.com"
     },
     "web": {

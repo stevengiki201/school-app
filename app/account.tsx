@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, Button, Alert, Pressable, View as RNView, KeyboardAvoidingView, Platform} from "react-native";
+import { StyleSheet, TouchableOpacity, Button, Alert, Pressable, View as RNView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View,Image, Text as RNText} from "react-native";
 import { rootStore } from "@/components/models";
@@ -9,6 +9,7 @@ import { observer } from "mobx-react-lite";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { KeyboardAwareScrollView } from "@/components/ui/keyboard-aware-scroll-view";
 
 const  AccountScreen = observer(()=> {
   const router = useRouter();
@@ -60,14 +61,9 @@ const pickImage = async () => {
   const initials = authUser?.username ? authUser.username.slice(1, 2).toUpperCase() : "NA";
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-    <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-    <ScrollView
+    <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         > 
          <RNView style={[styles.header, { backgroundColor: theme.background }]}>
            <TouchableOpacity onPress={() => router.back()}>
@@ -119,8 +115,7 @@ const pickImage = async () => {
            />
          </View>
        </View>
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
     </SafeAreaView>
 
   );

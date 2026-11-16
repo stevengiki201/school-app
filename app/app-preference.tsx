@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Card, Divider, RadioButton } from "react-native-paper";
@@ -28,7 +27,7 @@ const AppPreferenceScreen = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
     >
     <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
