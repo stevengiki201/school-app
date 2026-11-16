@@ -280,7 +280,7 @@ const ExportScreen = observer(() => {
         </Button>
 
         <Text style={[styles.note, { color: isDark ? "#9ca3af" : "#6b7280" }]}>
-          Only attendance that has been saved is included. Files are shared via your device's share
+          Only attendance that has been saved is included. Files are shared via your device’s share
           sheet — save to Files, email, or WhatsApp.
         </Text>
       </View>

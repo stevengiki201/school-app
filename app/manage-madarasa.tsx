@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Platform, Alert } from "react-native"
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Platform, Alert, KeyboardAvoidingView } from "react-native"
 import { useTheme } from "@/context/ThemeContext";
 import { Button, Card, Divider, DataTable, Modal, TextInput} from "react-native-paper"
 import { Edit, PlusIcon, Trash2, ChevronLeft } from "lucide-react-native"
@@ -118,9 +118,14 @@ const ManageMadarasa = observer(() => {
 
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         >
     <View style={[{ flex: 1 , backgroundColor: theme.background }]}>
       <View style={styles.header}>
@@ -233,6 +238,7 @@ const ManageMadarasa = observer(() => {
       </Modal>
     </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 });
 const styles = StyleSheet.create({

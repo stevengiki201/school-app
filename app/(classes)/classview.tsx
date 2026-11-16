@@ -5,7 +5,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { observer } from "mobx-react-lite";
 import { useTheme } from "@/context/ThemeContext";
 import { rootStore } from "@/components/models";
-import {Button, DataTable, Menu} from "react-native-paper";
+import {Button, DataTable} from "react-native-paper";
+import {
+  AnchoredMenu as Menu,
+  AnchoredMenuItem as MenuItem,
+} from "@/components/ui/anchored-menu";
 import React,{ useState } from "react";
 import { BarChart4Icon, ChevronLeft, Edit3, SaveAll, Trash2, UserPlus2, Users } from "lucide-react-native";
 
@@ -52,7 +56,7 @@ const ClassHomeScreen = observer(() => {
         />
         <View style={{flex:1, paddingTop:80, alignItems:"center"}}>
         <Text style={[styles.emptyTitle, { color: theme.text }]}>No students yet</Text>
-        <Text style={[styles.emptySubtitle, { color: theme.text }]}>You haven't added any students to {selectedDarasa.name}. Add students to start tracking attendance and performance.</Text>
+        <Text style={[styles.emptySubtitle, { color: theme.text }]}>You haven’t added any students to {selectedDarasa.name}. Add students to start tracking attendance and performance.</Text>
         <View style={styles.emptyActions}>
           <Button
             mode="outlined"
@@ -141,7 +145,7 @@ const ClassHomeScreen = observer(() => {
             onDismiss={() => setMenuStudentId(null)}
             contentStyle={{ backgroundColor: theme.card }}
             anchor={
-              <DataTable.Row onPress={() => setMenuStudentId(student.id)}>
+              <DataTable.Row onPress={() => setMenuStudentId((current) => current === student.id ? null : student.id)}>
                 <DataTable.Cell><Text style={{ color: theme.text }}>{student.reg_no || student.id}</Text></DataTable.Cell>
                 <DataTable.Cell>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
@@ -158,7 +162,7 @@ const ClassHomeScreen = observer(() => {
               </DataTable.Row>
             }
           >
-            <Menu.Item
+            <MenuItem
               leadingIcon="pencil-outline"
               title="Edit student"
               titleStyle={{ color: theme.text }}
@@ -167,7 +171,7 @@ const ClassHomeScreen = observer(() => {
                 onEditStudent(student);
               }}
             />
-            <Menu.Item
+            <MenuItem
               leadingIcon="trash-outline"
               title="Delete student"
               titleStyle={{ color: theme.text }}

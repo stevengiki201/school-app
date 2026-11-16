@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { View, Button, Text, ScrollView, Pressable } from "react-native"
+import { View, Button, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform } from "react-native"
 import { useTheme } from "@/context/ThemeContext";
 import { observer } from "mobx-react-lite"
 import { nanoid } from "nanoid/non-secure"
@@ -46,9 +46,14 @@ const AddClassScreen = observer(() => {
   };
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         >
     <View style={{ padding: 20,flex: 1, backgroundColor: theme.background }}>
       <TextInput
@@ -88,6 +93,7 @@ const AddClassScreen = observer(() => {
       </View>
     </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 })
 

@@ -42,8 +42,8 @@ const AttendanceScreen = observer(() => {
   if(selectedDarasa.students.length===0){
     return (
       <View style={{ flex: 1, alignItems: "center", backgroundColor: theme.background, justifyContent: "center" }}>
-        <Text style={{ color: theme.text }}>No students Found in this class.</Text>
-        <Text style={{ color: theme.text }}>You don't have any students in this class.</Text>
+        <Text style={{ color: theme.text }}>No students found in this class.</Text>
+        <Text style={{ color: theme.text }}>You don’t have any students in this class.</Text>
           <Text style={{ color: theme.text }}>Add Student to get started</Text>
           <Button
         mode="contained"

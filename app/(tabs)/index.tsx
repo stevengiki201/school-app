@@ -108,7 +108,7 @@ const HomeScreen = observer(() => {
               />
               <Text style={[styles.emptyTitle, { color: theme.text }]}>Welcome to {authUser?.school_name ?? "ShuleBomba App"} 👋</Text>
               <Text style={[styles.emptySubtitle, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-                You haven't created any classes yet. Let's add your first class to get started — it's quick and easy!
+                You haven’t created any classes yet. Let’s add your first class to get started — it’s quick and easy!
               </Text>
               <Animated.View style={{ transform: [{ scale: pulse }] }}>
                 <TouchableOpacity style={styles.ctaButton} onPress={onPressAddFirst}>

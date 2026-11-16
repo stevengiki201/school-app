@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, ScrollView, Pressable, Alert, StyleSheet, TextInput } from "react-native"
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from "react-native"
 import { observer } from "mobx-react-lite"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { rootStore } from "@/components/models"
 import { useTheme } from "@/context/ThemeContext"
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Menu } from "react-native-paper";
+import { Button } from "react-native-paper";
+import {
+  AnchoredMenu as Menu,
+  AnchoredMenuItem as MenuItem,
+} from "@/components/ui/anchored-menu";
 import * as DocumentPicker from "expo-document-picker";
 import * as XLSX from "xlsx";
 import * as FS from "expo-file-system/legacy";
@@ -185,6 +189,10 @@ const AddStudentScreen = observer(() => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         <View style={[styles.formCard, { backgroundColor: theme.card }]}>
@@ -207,7 +215,7 @@ const AddStudentScreen = observer(() => {
             contentStyle={{ backgroundColor: theme.background }}
             anchor={
               <Pressable
-                onPress={() => setSexMenuVisible(true)}
+                onPress={() => setSexMenuVisible((v) => !v)}
                 style={[styles.input, styles.sexPicker, { borderColor: sex ? BRAND.blue : BRAND.hairline }]}
               >
                 <Ionicons
@@ -227,7 +235,7 @@ const AddStudentScreen = observer(() => {
             }
           >
             {(["male", "female"] as Sex[]).map((option) => (
-              <Menu.Item
+              <MenuItem
                 key={option}
                 title={option === "male" ? "Male" : "Female"}
                 onPress={() => { setSex(option); setSexMenuVisible(false); }}
@@ -291,6 +299,7 @@ const AddStudentScreen = observer(() => {
         </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 })

@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import { nanoid } from "nanoid/non-secure";
-import { Button, TextInput, Card, Divider, Menu, Modal } from "react-native-paper";
+import { Button, TextInput, Card, Divider, Modal } from "react-native-paper";
+import {
+  AnchoredMenu as Menu,
+  AnchoredMenuItem as MenuItem,
+} from "@/components/ui/anchored-menu";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   getCurrentTestEditRequest,
@@ -177,7 +181,7 @@ const AddTestScreen = observer(() => {
     router.push("/(classes)/test-score");
   };
 
-  const openSubjectMenu = () => setSubjectMenuVisible(true);
+  const openSubjectMenu = () => setSubjectMenuVisible((v) => !v);
 
   const openAddSubjectModal = () => {
     setSubjectMenuVisible(false);
@@ -205,9 +209,14 @@ const AddTestScreen = observer(() => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
     <ScrollView
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       {/* Subject Section — asked first: marks must always belong to a subject */}
       <Card style={[styles.card,{backgroundColor:theme.card}]}>
@@ -240,7 +249,7 @@ const AddTestScreen = observer(() => {
             }
           >
             {selectedDarasa.subjects.map((s) => (
-              <Menu.Item
+              <MenuItem
                 key={s.id}
                 title={s.name}
                 onPress={() => {
@@ -251,7 +260,7 @@ const AddTestScreen = observer(() => {
               />
             ))}
             {selectedDarasa.subjects.length === 0 && (
-              <Menu.Item
+              <MenuItem
                 title="Add your class subject"
                 onPress={openAddSubjectModal}
               />
@@ -260,7 +269,7 @@ const AddTestScreen = observer(() => {
 
           {subjectAddedNotice && (
             <Text style={styles.subjectAdded}>
-              "{subjectAddedNotice}" added to this class.
+              Subject “{subjectAddedNotice}” added to this class.
             </Text>
           )}
 
@@ -347,6 +356,7 @@ const AddTestScreen = observer(() => {
         </Button>
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
 
     <Modal
       visible={subjectModalVisible}

@@ -11,7 +11,11 @@ import {
 } from "react-native";
 import { observer } from "mobx-react-lite";
 import { rootStore } from "@/components/models";
-import { Button, Menu } from "react-native-paper";
+import { Button } from "react-native-paper";
+import {
+  AnchoredMenu as Menu,
+  AnchoredMenuItem as MenuItem,
+} from "@/components/ui/anchored-menu";
 import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
@@ -348,7 +352,7 @@ const TestScoreScreen = observer(() => {
           menuState ? { x: menuState.x, y: menuState.y } : { x: 0, y: 0 }
         }
       >
-        <Menu.Item
+        <MenuItem
           leadingIcon="pencil"
           title="Edit"
           onPress={() => {
@@ -360,7 +364,7 @@ const TestScoreScreen = observer(() => {
             }
           }}
         />
-        <Menu.Item
+        <MenuItem
           leadingIcon="trash-can-outline"
           title="Delete"
           titleStyle={{ color: "#DC2626" }}
